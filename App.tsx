@@ -14,7 +14,8 @@ const DEFAULT_CONFIG: AppConfig = {
   consolidateResults: true, // Default to Consolidated
 };
 
-const ChordChip = ({ data, showBadges, isLarge, compact = false }: { data: ChordMatch; showBadges: boolean; isLarge: boolean; compact?: boolean }) => {
+// Fix: Explicitly type as React.FC to include 'key' in allowed JSX props
+const ChordChip: React.FC<{ data: ChordMatch; showBadges: boolean; isLarge: boolean; compact?: boolean }> = ({ data, showBadges, isLarge, compact = false }) => {
   return (
     <div className={`flex flex-col items-center justify-center rounded-lg border transition-all w-full ${
         data.isFullMatch 
@@ -279,7 +280,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
-                Barry Harris Analyzer
+                Chord Sub App for Harmony Nerds
               </h1>
               <p className="text-[10px] text-gray-400 uppercase tracking-wide">Diminished 6th Scale System</p>
             </div>
@@ -795,7 +796,7 @@ export default function App() {
         </div>
         
         <footer className="text-center text-gray-700 text-[10px] pt-6 pb-4">
-          <p>© 2024 Barry Harris Analyzer. Based on the Diminished 6th System.</p>
+          <p>© 2024 Chord Sub App for Harmony Nerds. Based on the Diminished 6th System.</p>
         </footer>
 
       </div>
