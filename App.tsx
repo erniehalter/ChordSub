@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Music, Settings2, Info, AlertCircle, MousePointerClick, Eye, EyeOff } from 'lucide-react';
 import { Toggle } from './components/Toggle';
@@ -280,7 +279,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
-                Chord Sub App for Harmony Nerds
+                Chord Sub App for Harmony Nerds (v 1.01)
               </h1>
               <p className="text-[10px] text-gray-400 uppercase tracking-wide">Diminished 6th Scale System</p>
             </div>
@@ -796,7 +795,7 @@ export default function App() {
         </div>
         
         <footer className="text-center text-gray-700 text-[10px] pt-6 pb-4">
-          <p>© 2024 Chord Sub App for Harmony Nerds. Based on the Diminished 6th System.</p>
+          <p>© 2024 Chord Sub App for Harmony Nerds (v 1.01). Based on the Diminished 6th System.</p>
         </footer>
 
       </div>
