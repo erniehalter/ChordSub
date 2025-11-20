@@ -1,0 +1,5 @@
+{
+  "name": "Barry Harris Chord Analyzer",
+  "description": "A modern web application for analyzing chords, scales, and dominant families using the Barry Harris method.",
+  "requestFramePermissions": []
+}
