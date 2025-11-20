@@ -1,41 +1,41 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Music, Settings2, Info, AlertCircle, MousePointerClick, Eye, EyeOff } from 'lucide-react';
-import { Toggle } from './components/Toggle';
+import { Music, Info, AlertCircle, MousePointerClick, Eye, EyeOff } from 'lucide-react';
 import { analyzeChord } from './services/logic';
 import { AppConfig, AnalysisResult, ChordMatch } from './types';
 import { CANONICAL_ROOTS } from './constants';
+import { FONT_SIZES, LAYOUT_SIZES } from './theme';
 
 const DEFAULT_CONFIG: AppConfig = {
   highlightExtensions: true,
-  hideIfMelodyNotInChord: true, // Default to strict mode
-  hideIfMelodyNotInScale: false, // Allow analysis to proceed for related chords (e.g. m6)
-  largeChordFont: true, // Default to Large
-  consolidateResults: true, // Default to Consolidated
+  hideIfMelodyNotInChord: true, // Default: Hide Mismatch Enabled
+  hideIfMelodyNotInScale: false,
+  largeChordFont: true, 
+  consolidateResults: true, // Default: Consolidate Enabled
 };
 
-// Fix: Explicitly type as React.FC to include 'key' in allowed JSX props
-const ChordChip: React.FC<{ data: ChordMatch; showBadges: boolean; isLarge: boolean; compact?: boolean }> = ({ data, showBadges, isLarge, compact = false }) => {
+// Updated ChordChip to use FONT_SIZES from theme.ts
+const ChordChip: React.FC<{ data: ChordMatch; showBadges: boolean; compact?: boolean }> = ({ data, showBadges, compact = false }) => {
   return (
     <div className={`flex flex-col items-center justify-center rounded-lg border transition-all w-full ${
         data.isFullMatch 
         ? 'bg-gray-800 border-gray-700' 
         : 'bg-gray-900/40 border-gray-800/50 text-gray-400'
-    } ${isLarge ? 'p-4 min-h-[5rem]' : compact ? 'px-2 py-1.5 min-h-[2.5rem]' : 'px-3 py-2 min-h-[3.5rem]'}`}>
-       <span className={`font-mono font-medium leading-tight text-center ${data.isFullMatch ? 'text-gray-200' : 'text-gray-500'} ${isLarge ? 'text-xl' : compact ? 'text-xs' : 'text-sm'}`}>
+    } ${compact ? `${LAYOUT_SIZES.CHORD_HEIGHT_COMPACT} px-2 py-1.5` : `${LAYOUT_SIZES.CHORD_HEIGHT_MAIN} px-3 py-2`}`}>
+       <span className={`font-mono font-medium leading-tight text-center ${data.isFullMatch ? 'text-gray-200' : 'text-gray-500'} ${compact ? FONT_SIZES.CHORD_COMPACT : FONT_SIZES.CHORD_MAIN}`}>
          {data.symbol}
        </span>
        {data.labelSuffix && (
-           <span className="text-[10px] text-gray-500 mt-0.5 font-medium tracking-tight text-center">
+           <span className={`${FONT_SIZES.LABEL_SUFFIX} text-gray-500 mt-0.5 font-medium tracking-tight text-center`}>
                {data.labelSuffix}
            </span>
        )}
        {showBadges && (data.matchingNotes.length > 0 || data.missingNotes.length > 0) && (
            <div className="flex gap-1 mt-1.5 flex-wrap justify-center">
               {data.matchingNotes.map(n => (
-                  <span key={n} className="text-[9px] font-bold text-green-400 bg-green-900/20 px-1 rounded border border-green-900/30">{n}</span>
+                  <span key={n} className={`${FONT_SIZES.BADGE} font-bold text-green-400 bg-green-900/20 px-1 rounded border border-green-900/30`}>{n}</span>
               ))}
               {data.missingNotes.map(n => (
-                  <span key={n} className="text-[9px] text-gray-600 decoration-gray-600 line-through decoration-1 opacity-60">{n}</span>
+                  <span key={n} className={`${FONT_SIZES.BADGE} text-gray-600 decoration-gray-600 line-through decoration-1 opacity-60`}>{n}</span>
               ))}
            </div>
        )}
@@ -54,7 +54,7 @@ interface SectionHeaderProps {
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({ title, colorClass, isExpanded, isSolo, onToggle, onSolo }) => (
     <div className={`flex items-center justify-between mb-3 select-none group rounded-lg px-2 -mx-2 transition-all duration-200 ${!isExpanded ? 'bg-gray-900/40 py-2 border border-gray-800/50' : 'py-0'}`}>
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 cursor-pointer hover:text-gray-200 transition-colors flex-1" onClick={onToggle}>
+        <h3 className={`${FONT_SIZES.SECTION_TITLE} font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 cursor-pointer hover:text-gray-200 transition-colors flex-1`} onClick={onToggle}>
             <span className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isExpanded ? colorClass : 'bg-gray-700 scale-75'}`}></span>
             <span className={`transition-opacity duration-200 ${!isExpanded ? 'opacity-60' : 'opacity-100'}`}>{title}</span>
             {!isExpanded && <span className="text-[9px] font-normal text-gray-500 border border-gray-800 bg-gray-900/50 px-1.5 rounded ml-2">Hidden</span>}
@@ -98,7 +98,7 @@ interface SubSectionHeaderProps {
 const SubSectionHeader: React.FC<SubSectionHeaderProps> = ({ title, titleColor = "text-gray-200", isCollapsed, isSolo, onToggle, onSolo }) => (
     <div className={`flex items-center justify-between border-b border-gray-700/50 pb-2 mb-2 ${isCollapsed ? 'border-transparent mb-0' : ''}`}>
          <div className="flex items-center gap-2 overflow-hidden" onClick={onToggle} role="button">
-            <span className={`text-sm font-bold truncate transition-colors ${isCollapsed ? 'text-gray-500' : titleColor}`}>{title}</span>
+            <span className={`${FONT_SIZES.SUBSECTION_TITLE} font-bold truncate transition-colors ${isCollapsed ? 'text-gray-500' : titleColor}`}>{title}</span>
             {isCollapsed && <span className="text-[9px] font-normal text-gray-600 border border-gray-800 bg-gray-900/50 px-1.5 rounded">Hidden</span>}
          </div>
          <div className="flex items-center gap-1 shrink-0">
@@ -131,11 +131,10 @@ const SubSectionHeader: React.FC<SubSectionHeaderProps> = ({ title, titleColor =
 export default function App() {
   const [chordInput, setChordInput] = useState('');
   const [melodyInput, setMelodyInput] = useState('');
-  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  const [config] = useState<AppConfig>(DEFAULT_CONFIG);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   
   const [expandedSections, setExpandedSections] = useState({
-      settings: true,
       scale: true,
       families: true,
       triads: true,
@@ -167,10 +166,6 @@ export default function App() {
     return () => clearTimeout(timeOutId);
   }, [chordInput, melodyInput, config]);
 
-  const updateConfig = (key: keyof AppConfig, value: boolean) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
-  };
-
   const toggleSection = (key: keyof typeof expandedSections) => {
       setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -179,7 +174,6 @@ export default function App() {
       if (activeSoloKey === key) {
           // If currently soloed, "Un-solo" (Show All)
           setExpandedSections({
-              settings: true,
               scale: true,
               families: true,
               triads: true,
@@ -190,7 +184,6 @@ export default function App() {
       } else {
           // Solo this section
           setExpandedSections({
-              settings: key === 'settings',
               scale: key === 'scale',
               families: key === 'families',
               triads: key === 'triads',
@@ -279,93 +272,42 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
-                Chord Sub App for Harmony Nerds (v 1.01)
+                Chord Sub App for Harmony Nerds (v 1.03)
               </h1>
               <p className="text-[10px] text-gray-400 uppercase tracking-wide">Diminished 6th Scale System</p>
             </div>
           </div>
-          <div className="hidden md:block text-right">
-             <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${config.hideIfMelodyNotInChord ? 'bg-green-900/20 border-green-800 text-green-400' : 'bg-gray-800 border-gray-700 text-gray-400'}`}>
-                 {config.hideIfMelodyNotInChord ? 'Strict Mode Active' : 'Tension Mode'}
-             </span>
-          </div>
         </header>
 
-        {/* Top Control Panel: Inputs & Settings */}
-        <section className="flex flex-col">
-           <SectionHeader 
-                title="Configuration & Controls" 
-                colorClass="bg-gray-500"
-                isExpanded={expandedSections.settings}
-                isSolo={activeSoloKey === 'settings'}
-                onToggle={() => toggleSection('settings')}
-                onSolo={() => soloSection('settings')}
-           />
-           
-           {expandedSections.settings && (
-             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-xl animate-in slide-in-from-top-2 duration-200">
-                <div className="flex flex-col lg:flex-row gap-5">
-                    {/* Inputs Group */}
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                            Chord (Diminished)
-                        </label>
-                        <input
-                            type="text"
-                            value={chordInput}
-                            onChange={(e) => setChordInput(e.target.value)}
-                            placeholder="e.g., Cdim, F°7"
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base font-mono text-white placeholder-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                            Melody Note(s)
-                        </label>
-                        <input
-                            type="text"
-                            value={melodyInput}
-                            onChange={(e) => setMelodyInput(e.target.value)}
-                            placeholder="e.g., C Eb G"
-                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base font-mono text-white placeholder-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
-                        />
-                    </div>
-                    </div>
-
-                    {/* Vertical Divider for Desktop */}
-                    <div className="hidden lg:block w-px bg-gray-800 my-1"></div>
-
-                    {/* Settings Group */}
-                    <div className="lg:w-72 shrink-0 flex flex-col justify-center">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Settings2 className="w-3 h-3 text-gray-500" />
-                        <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Filters</h3>
-                    </div>
-                    <div className="bg-gray-800/40 rounded-lg px-3 border border-gray-800/50">
-                        <Toggle
-                        label="Consolidate Results"
-                        checked={config.consolidateResults}
-                        onChange={(v) => updateConfig('consolidateResults', v)}
-                        />
-                        <div className="h-px bg-gray-800/50 my-1"></div>
-                        <Toggle
-                        label="Hide mismatch (Chord)"
-                        checked={config.hideIfMelodyNotInChord}
-                        onChange={(v) => updateConfig('hideIfMelodyNotInChord', v)}
-                        />
-                        <div className="h-px bg-gray-800/50 my-1"></div>
-                        <Toggle
-                        label="Large Chord Font"
-                        checked={config.largeChordFont}
-                        onChange={(v) => updateConfig('largeChordFont', v)}
-                        />
-                    </div>
-                    </div>
+        {/* Input Panel */}
+        <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-xl">
+            <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                        Chord (Diminished)
+                    </label>
+                    <input
+                        type="text"
+                        value={chordInput}
+                        onChange={(e) => setChordInput(e.target.value)}
+                        placeholder="e.g., Cdim, F°7"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base font-mono text-white placeholder-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    />
                 </div>
-             </div>
-           )}
-        </section>
+                <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                        Melody Note(s)
+                    </label>
+                    <input
+                        type="text"
+                        value={melodyInput}
+                        onChange={(e) => setMelodyInput(e.target.value)}
+                        placeholder="e.g., C Eb G"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-base font-mono text-white placeholder-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                    />
+                </div>
+            </div>
+        </div>
 
         {/* Main Results Area */}
         <div className="space-y-4">
@@ -518,7 +460,7 @@ export default function App() {
                                                     {!isHidden && (
                                                         <div className="animate-in fade-in duration-200 flex flex-col gap-4 h-full">
                                                             {/* Parent Chord */}
-                                                            <ChordChip data={basicChord} showBadges={showMelodyBadges} isLarge={config.largeChordFont} />
+                                                            <ChordChip data={basicChord} showBadges={showMelodyBadges} />
                                                             
                                                             {/* Extensions List */}
                                                             <div className="flex-1 flex flex-col border-t border-gray-700/50 pt-3">
@@ -532,8 +474,7 @@ export default function App() {
                                                                             <ChordChip 
                                                                                 data={chordMatch} 
                                                                                 showBadges={showMelodyBadges} 
-                                                                                isLarge={config.largeChordFont}
-                                                                                compact={!config.largeChordFont} 
+                                                                                compact={true}
                                                                             />
                                                                         </div>
                                                                     ))}
@@ -570,7 +511,7 @@ export default function App() {
                                                 <div className="text-[9px] font-bold text-cyan-500 uppercase mb-2 tracking-widest border-b border-cyan-900/30 pb-1">Major</div>
                                                 <div className="flex flex-wrap gap-2 content-start">
                                                     {result.upperStructureTriads.major.length > 0 ? result.upperStructureTriads.major.map(t => (
-                                                        <ChordChip key={t.symbol} data={t} showBadges={showMelodyBadges} isLarge={config.largeChordFont} />
+                                                        <ChordChip key={t.symbol} data={t} showBadges={showMelodyBadges} />
                                                     )) : <span className="text-gray-700 text-xs italic p-1">None compatible</span>}
                                                 </div>
                                             </div>
@@ -578,7 +519,7 @@ export default function App() {
                                                 <div className="text-[9px] font-bold text-indigo-500 uppercase mb-2 tracking-widest border-b border-indigo-900/30 pb-1">Minor</div>
                                                 <div className="flex flex-wrap gap-2 content-start">
                                                     {result.upperStructureTriads.minor.length > 0 ? result.upperStructureTriads.minor.map(t => (
-                                                        <ChordChip key={t.symbol} data={t} showBadges={showMelodyBadges} isLarge={config.largeChordFont} />
+                                                        <ChordChip key={t.symbol} data={t} showBadges={showMelodyBadges} />
                                                     )) : <span className="text-gray-700 text-xs italic p-1">None compatible</span>}
                                                 </div>
                                             </div>
@@ -633,7 +574,7 @@ export default function App() {
                                             {!isHidden && (
                                                 <div className="animate-in fade-in duration-200 flex flex-col gap-4 h-full">
                                                     {/* Parent Chord */}
-                                                    <ChordChip data={m6Item.chord} showBadges={showMelodyBadges} isLarge={config.largeChordFont} />
+                                                    <ChordChip data={m6Item.chord} showBadges={showMelodyBadges} />
                                                     
                                                     {/* Scale Tones Visualization */}
                                                     <div>
@@ -668,8 +609,7 @@ export default function App() {
                                                                         <ChordChip 
                                                                         data={dc} 
                                                                         showBadges={showMelodyBadges} 
-                                                                        isLarge={config.largeChordFont} 
-                                                                        compact={!config.largeChordFont} 
+                                                                        compact={true}
                                                                         />
                                                                     </div>
                                                                 ))}
@@ -725,7 +665,7 @@ export default function App() {
                                                       <div className="animate-in fade-in duration-200 flex flex-wrap gap-2">
                                                           {fam.chords.map(c => (
                                                               <div key={c.symbol} className="flex-grow">
-                                                                  <ChordChip data={c} showBadges={showMelodyBadges} isLarge={config.largeChordFont} compact={!config.largeChordFont} />
+                                                                  <ChordChip data={c} showBadges={showMelodyBadges} />
                                                               </div>
                                                           ))}
                                                       </div>
@@ -776,7 +716,7 @@ export default function App() {
                                                       <div className="animate-in fade-in duration-200 flex flex-wrap gap-2">
                                                           {fam.chords.map(c => (
                                                               <div key={c.symbol} className="flex-grow">
-                                                                  <ChordChip data={c} showBadges={showMelodyBadges} isLarge={config.largeChordFont} compact={!config.largeChordFont} />
+                                                                  <ChordChip data={c} showBadges={showMelodyBadges} />
                                                               </div>
                                                           ))}
                                                       </div>
@@ -795,7 +735,7 @@ export default function App() {
         </div>
         
         <footer className="text-center text-gray-700 text-[10px] pt-6 pb-4">
-          <p>© 2024 Chord Sub App for Harmony Nerds (v 1.01). Based on the Diminished 6th System.</p>
+          <p>© 2024 Chord Sub App for Harmony Nerds (v 1.03). Based on the Diminished 6th System.</p>
         </footer>
 
       </div>
