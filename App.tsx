@@ -272,7 +272,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
-                Chord Sub App for Harmony Nerds (v 1.03)
+                Chord Sub App for Harmony Nerds (v 1.05)
               </h1>
               <p className="text-[10px] text-gray-400 uppercase tracking-wide">Diminished 6th Scale System</p>
             </div>
@@ -470,7 +470,7 @@ export default function App() {
                                                                 </div>
                                                                 <div className="flex flex-wrap gap-1.5">
                                                                     {extensions.map(chordMatch => (
-                                                                        <div key={chordMatch.symbol} className="flex-grow-0">
+                                                                        <div key={chordMatch.symbol} className="flex-grow">
                                                                             <ChordChip 
                                                                                 data={chordMatch} 
                                                                                 showBadges={showMelodyBadges} 
@@ -605,7 +605,7 @@ export default function App() {
                                                         {m6Item.derivedChords.length > 0 ? (
                                                             <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                                                                 {m6Item.derivedChords.map((dc, dcIdx) => (
-                                                                    <div key={dcIdx} className="flex-grow-0">
+                                                                    <div key={dcIdx} className="flex-grow">
                                                                         <ChordChip 
                                                                         data={dc} 
                                                                         showBadges={showMelodyBadges} 
@@ -735,7 +735,7 @@ export default function App() {
         </div>
         
         <footer className="text-center text-gray-700 text-[10px] pt-6 pb-4">
-          <p>© 2024 Chord Sub App for Harmony Nerds (v 1.03). Based on the Diminished 6th System.</p>
+          <p>© 2024 Chord Sub App for Harmony Nerds (v 1.05). Based on the Diminished 6th System.</p>
         </footer>
 
       </div>

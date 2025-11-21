@@ -379,16 +379,57 @@ export const analyzeChord = (input: string, melodyInput: string, config: AppConf
       { key: '7alt', label: '7alt' }
   ];
 
-  familyData.strict_dominants.basic.forEach((basicDom) => {
+  // Define Archetypes for Slash Chords
+  // Interval is semitones from Dominant Root
+  const slashArchetypes: Record<string, { interval: number, quality: string }> = {
+      '7b9': { interval: 1, quality: '' },     // bII/Root (e.g. Db/C for C7b9)
+      '7s9': { interval: 3, quality: 'm' },    // bIIIm/Root (e.g. Ebm/C for C7#9)
+      '7b5': { interval: 2, quality: '' },     // II/Root (e.g. D/C for C7b5)
+      '13b9': { interval: 9, quality: '' },    // VI/Root (e.g. A/C for C13b9)
+      '7alt': { interval: 8, quality: '' },    // bVI/Root (e.g. Ab/C for C7alt)
+  };
+
+  familyData.strict_dominants.basic.forEach((basicDom: string) => {
       const domRoot = getRootFromString(basicDom);
       const chordsInFamily: ChordMatch[] = [];
 
       suffixes.forEach(suffixObj => {
-          let symbol = domRoot + suffixObj.label;
-          if (suffixObj.label === '7') symbol = domRoot + "7";
+          let functionalSymbol = domRoot + suffixObj.label;
+          if (suffixObj.label === '7') functionalSymbol = domRoot + "7";
 
-          const match = createChordMatch(symbol, melodyNotesSet, config);
-          if (match) chordsInFamily.push(match);
+          let bestMatch: ChordMatch | null = null;
+          
+          // 1. Try Slash Chord Archetype
+          if (slashArchetypes[suffixObj.key]) {
+               const arch = slashArchetypes[suffixObj.key];
+               const domRootIdx = NOTE_SORT_MAP[CANONICAL_ROOTS[domRoot] || domRoot];
+               
+               if (domRootIdx !== undefined) {
+                   let slashRootIdx = (domRootIdx + arch.interval) % 12;
+                   if (slashRootIdx < 0) slashRootIdx += 12;
+                   const slashRoot = CHROMATIC_SCALE[slashRootIdx];
+                   
+                   // Check for Minor or Major Triad
+                   const slashSymbol = `${slashRoot}${arch.quality}/${domRoot}`;
+                   
+                   const slashMatch = createChordMatch(slashSymbol, melodyNotesSet, config);
+                   if (slashMatch) {
+                       slashMatch.labelSuffix = `(aka ${functionalSymbol})`;
+                       bestMatch = slashMatch;
+                   }
+               }
+          }
+
+          // 2. Fallback to Functional Symbol
+          // If slash didn't match (e.g. melody note missing from triad), try the full functional chord
+          if (!bestMatch) {
+              const functionalMatch = createChordMatch(functionalSymbol, melodyNotesSet, config);
+              if (functionalMatch) {
+                  bestMatch = functionalMatch;
+              }
+          }
+
+          if (bestMatch) chordsInFamily.push(bestMatch);
       });
 
       if (chordsInFamily.length > 0) {
@@ -402,7 +443,7 @@ export const analyzeChord = (input: string, melodyInput: string, config: AppConf
   // 5. Related Minor 6ths
   const relatedMinor6ths: RelatedMinor6Match[] = [];
   if (familyData.m6s) {
-      familyData.m6s.forEach(m6Sym => {
+      familyData.m6s.forEach((m6Sym: string) => {
           const m6Root = getRootFromString(m6Sym);
           const rawScale = getBhScaleNotes(m6Root, "Minor6Dim");
           const m6ScaleSet = new Set(rawScale.map(n => CANONICAL_ROOTS[n] || n));
@@ -679,7 +720,7 @@ export const analyzeChord = (input: string, melodyInput: string, config: AppConf
   }
 
   // 6. Upper Structure Triads
-  const triadRoots = familyData.strict_dominants.basic.map(d => getRootFromString(d));
+  const triadRoots = familyData.strict_dominants.basic.map((d: string) => getRootFromString(d));
   triadRoots.sort((a,b) => (NOTE_SORT_MAP[a] || 0) - (NOTE_SORT_MAP[b] || 0));
 
   const processTriads = (roots: string[], quality: string): ChordMatch[] => {
