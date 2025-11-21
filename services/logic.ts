@@ -376,17 +376,15 @@ export const analyzeChord = (input: string, melodyInput: string, config: AppConf
       { key: '7s9', label: '7(#9)' },
       { key: '7b5', label: '7(b5)' },
       { key: '13b9', label: '13(b9)' },
-      { key: '7alt', label: '7alt' }
+      // REMOVED 7alt: It is not diatonic to the Diminished Scale.
   ];
 
   // Define Archetypes for Slash Chords
-  // Interval is semitones from Dominant Root
+  // STRICT DIATONIC CHECK: These archetypes must contain notes STRICTLY found in the Half-Whole Diminished scale.
   const slashArchetypes: Record<string, { interval: number, quality: string }> = {
-      '7b9': { interval: 1, quality: '' },     // bII/Root (e.g. Db/C for C7b9)
-      '7s9': { interval: 3, quality: 'm' },    // bIIIm/Root (e.g. Ebm/C for C7#9)
-      '7b5': { interval: 2, quality: '' },     // II/Root (e.g. D/C for C7b5)
-      '13b9': { interval: 9, quality: '' },    // VI/Root (e.g. A/C for C13b9)
-      '7alt': { interval: 8, quality: '' },    // bVI/Root (e.g. Ab/C for C7alt)
+      '7s9': { interval: 3, quality: 'm' },    // bIIIm/Root (e.g. Ebm/C). Notes: #9, b5, b7. All in scale.
+      '7b5': { interval: 6, quality: '' },     // bV/Root (e.g. Gb/C). Notes: b5, b7, b9. All in scale. (Tritone Sub Triad)
+      '13b9': { interval: 9, quality: '' },    // VI/Root (e.g. A/C). Notes: 13, b9, 3. All in scale.
   };
 
   familyData.strict_dominants.basic.forEach((basicDom: string) => {
@@ -426,6 +424,24 @@ export const analyzeChord = (input: string, melodyInput: string, config: AppConf
               const functionalMatch = createChordMatch(functionalSymbol, melodyNotesSet, config);
               if (functionalMatch) {
                   bestMatch = functionalMatch;
+
+                   // NEW: Add alias to slash chord if one exists for this family type, even if strict voicing was skipped
+                  if (slashArchetypes[suffixObj.key]) {
+                       const arch = slashArchetypes[suffixObj.key];
+                       const domRootIdx = NOTE_SORT_MAP[CANONICAL_ROOTS[domRoot] || domRoot];
+                       if (domRootIdx !== undefined) {
+                           let slashRootIdx = (domRootIdx + arch.interval) % 12;
+                           if (slashRootIdx < 0) slashRootIdx += 12;
+                           const slashRoot = CHROMATIC_SCALE[slashRootIdx];
+                           const slashName = `${slashRoot}${arch.quality}/${domRoot}`;
+                           
+                           const existing = bestMatch.labelSuffix ? bestMatch.labelSuffix + ' ' : '';
+                           // Only add if not already present
+                           if (!existing.includes(slashName)) {
+                               bestMatch.labelSuffix = `${existing}(alt. ${slashName})`;
+                           }
+                       }
+                  }
               }
           }
 

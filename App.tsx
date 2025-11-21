@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Music, Info, AlertCircle, MousePointerClick, Eye, EyeOff } from 'lucide-react';
 import { analyzeChord } from './services/logic';
@@ -45,6 +46,7 @@ const ChordChip: React.FC<{ data: ChordMatch; showBadges: boolean; compact?: boo
 
 interface SectionHeaderProps {
     title: string;
+    subtitle?: string;
     colorClass: string;
     isExpanded: boolean;
     isSolo: boolean;
@@ -52,14 +54,21 @@ interface SectionHeaderProps {
     onSolo: () => void;
 }
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, colorClass, isExpanded, isSolo, onToggle, onSolo }) => (
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, colorClass, isExpanded, isSolo, onToggle, onSolo }) => (
     <div className={`flex items-center justify-between mb-3 select-none group rounded-lg px-2 -mx-2 transition-all duration-200 ${!isExpanded ? 'bg-gray-900/40 py-2 border border-gray-800/50' : 'py-0'}`}>
-        <h3 className={`${FONT_SIZES.SECTION_TITLE} font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2 cursor-pointer hover:text-gray-200 transition-colors flex-1`} onClick={onToggle}>
-            <span className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isExpanded ? colorClass : 'bg-gray-700 scale-75'}`}></span>
-            <span className={`transition-opacity duration-200 ${!isExpanded ? 'opacity-60' : 'opacity-100'}`}>{title}</span>
-            {!isExpanded && <span className="text-[9px] font-normal text-gray-500 border border-gray-800 bg-gray-900/50 px-1.5 rounded ml-2">Hidden</span>}
+        <h3 className={`${FONT_SIZES.SECTION_TITLE} font-bold text-gray-400 uppercase tracking-wider flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 cursor-pointer hover:text-gray-200 transition-colors flex-1`} onClick={onToggle}>
+            <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isExpanded ? colorClass : 'bg-gray-700 scale-75'}`}></span>
+                <span className={`transition-opacity duration-200 ${!isExpanded ? 'opacity-60' : 'opacity-100'}`}>{title}</span>
+            </div>
+            {subtitle && isExpanded && (
+                <span className="text-[10px] text-gray-600 font-normal lowercase tracking-normal border-l border-gray-700 pl-2 ml-0 block sm:inline mt-0.5 sm:mt-0">
+                    ({subtitle})
+                </span>
+            )}
+            {!isExpanded && <span className="text-[9px] font-normal text-gray-500 border border-gray-800 bg-gray-900/50 px-1.5 rounded sm:ml-2 w-fit">Hidden</span>}
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-start sm:self-center">
             <button 
                 onClick={(e) => { e.stopPropagation(); onSolo(); }}
                 className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border transition-all duration-200 ${
@@ -272,7 +281,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
-                Chord Sub App for Harmony Nerds (v 1.05)
+                Chord Sub App for Harmony Nerds (v 1.09)
               </h1>
               <p className="text-[10px] text-gray-400 uppercase tracking-wide">Diminished 6th Scale System</p>
             </div>
@@ -423,7 +432,8 @@ export default function App() {
                     {/* Left Column: Dominant Families Only */}
                     <section className="flex flex-col gap-4 h-full">
                         <SectionHeader 
-                            title="Dominant Families (Lower Note)" 
+                            title="Dominant Families (Lower Note)"
+                            subtitle="diatonic to half-whole diminished scale" 
                             colorClass="bg-indigo-500" 
                             isExpanded={expandedSections.families}
                             isSolo={activeSoloKey === 'families'}
@@ -447,39 +457,36 @@ export default function App() {
                                             const isSoloed = checkSubSolo(cardId, familyIds);
 
                                             return (
-                                                <div key={fam.root} className={`bg-gray-800/40 border border-gray-700/30 rounded-lg p-4 hover:bg-gray-800/60 transition-colors flex flex-col gap-4 h-full ${isHidden ? 'opacity-60' : ''}`}>
-                                                    <SubSectionHeader 
-                                                        title={`${fam.root} Family`}
-                                                        titleColor="text-indigo-300"
-                                                        isCollapsed={isHidden}
-                                                        isSolo={isSoloed}
-                                                        onToggle={() => toggleSubItem(cardId)}
-                                                        onSolo={() => handleSubSolo(cardId, familyIds)}
-                                                    />
+                                                <div key={fam.root} className={`bg-gray-900/80 rounded-xl border border-gray-800/80 overflow-hidden transition-all duration-300 ${isHidden ? 'opacity-50 grayscale' : ''} ${isSoloed ? 'ring-1 ring-indigo-500/50 bg-gray-800/80' : ''}`}>
+                                                     <div className="px-3 py-2 bg-gray-900 border-b border-gray-800/50">
+                                                        <SubSectionHeader 
+                                                            title={`${fam.root} Family`} 
+                                                            titleColor="text-indigo-200"
+                                                            isCollapsed={isHidden}
+                                                            isSolo={isSoloed}
+                                                            onToggle={() => toggleSubItem(cardId)}
+                                                            onSolo={() => handleSubSolo(cardId, familyIds)}
+                                                        />
+                                                     </div>
                                                     
                                                     {!isHidden && (
-                                                        <div className="animate-in fade-in duration-200 flex flex-col gap-4 h-full">
-                                                            {/* Parent Chord */}
+                                                        <div className="p-3 space-y-4">
+                                                            {/* Hero Chord */}
                                                             <ChordChip data={basicChord} showBadges={showMelodyBadges} />
-                                                            
+
                                                             {/* Extensions List */}
-                                                            <div className="flex-1 flex flex-col border-t border-gray-700/50 pt-3">
-                                                                <div className="text-[9px] font-bold text-gray-500 uppercase mb-2 tracking-wider flex items-center justify-between">
-                                                                    Extensions
-                                                                    <span className="text-[8px] bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">{extensions.length}</span>
+                                                            {extensions.length > 0 && (
+                                                                <div className="space-y-1.5">
+                                                                    <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Extensions</p>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {extensions.map((ext) => (
+                                                                            <div key={ext.symbol} className="flex-grow basis-[120px]">
+                                                                                <ChordChip data={ext} showBadges={showMelodyBadges} compact />
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex flex-wrap gap-1.5">
-                                                                    {extensions.map(chordMatch => (
-                                                                        <div key={chordMatch.symbol} className="flex-grow">
-                                                                            <ChordChip 
-                                                                                data={chordMatch} 
-                                                                                showBadges={showMelodyBadges} 
-                                                                                compact={true}
-                                                                            />
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -491,253 +498,214 @@ export default function App() {
                         )}
                     </section>
 
-                     {/* Right Column: Upper Structures */}
-                     <section className="flex flex-col h-full">
-                        <SectionHeader 
-                            title="Upper Extension Triads" 
-                            colorClass="bg-cyan-500" 
+                    {/* Right Column: Upper Structure Triads */}
+                    <section className="flex flex-col gap-4 h-full">
+                         <SectionHeader 
+                            title="Upper Structure Triads" 
+                            subtitle="diatonic to half-whole diminished scale"
+                            colorClass="bg-teal-500" 
                             isExpanded={expandedSections.triads}
                             isSolo={activeSoloKey === 'triads'}
                             onToggle={() => toggleSection('triads')}
                             onSolo={() => soloSection('triads')}
                         />
-
                         {expandedSections.triads && (
-                             <div className="animate-in fade-in duration-300 h-full">
-                                {(result.upperStructureTriads.major.length > 0 || result.upperStructureTriads.minor.length > 0) ? (
-                                    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 h-full">
-                                        <div className="grid grid-cols-2 gap-4 h-full">
-                                            <div className="flex flex-col">
-                                                <div className="text-[9px] font-bold text-cyan-500 uppercase mb-2 tracking-widest border-b border-cyan-900/30 pb-1">Major</div>
-                                                <div className="flex flex-wrap gap-2 content-start">
-                                                    {result.upperStructureTriads.major.length > 0 ? result.upperStructureTriads.major.map(t => (
-                                                        <ChordChip key={t.symbol} data={t} showBadges={showMelodyBadges} />
-                                                    )) : <span className="text-gray-700 text-xs italic p-1">None compatible</span>}
-                                                </div>
+                            <div className="animate-in fade-in duration-300 h-full">
+                                 <div className="bg-gray-900/80 rounded-xl border border-gray-800/80 overflow-hidden p-3 h-full">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <h4 className="text-[10px] font-bold text-teal-500/70 uppercase tracking-wider mb-2 border-b border-teal-900/30 pb-1">Major Triads</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {result.upperStructureTriads.major.map(chord => (
+                                                   <div key={chord.symbol} className="flex-grow basis-[80px]">
+                                                        <ChordChip data={chord} showBadges={showMelodyBadges} compact />
+                                                   </div>
+                                                ))}
                                             </div>
-                                            <div className="flex flex-col">
-                                                <div className="text-[9px] font-bold text-indigo-500 uppercase mb-2 tracking-widest border-b border-indigo-900/30 pb-1">Minor</div>
-                                                <div className="flex flex-wrap gap-2 content-start">
-                                                    {result.upperStructureTriads.minor.length > 0 ? result.upperStructureTriads.minor.map(t => (
-                                                        <ChordChip key={t.symbol} data={t} showBadges={showMelodyBadges} />
-                                                    )) : <span className="text-gray-700 text-xs italic p-1">None compatible</span>}
-                                                </div>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-[10px] font-bold text-teal-500/70 uppercase tracking-wider mb-2 border-b border-teal-900/30 pb-1">Minor Triads</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {result.upperStructureTriads.minor.map(chord => (
+                                                    <div key={chord.symbol} className="flex-grow basis-[80px]">
+                                                        <ChordChip data={chord} showBadges={showMelodyBadges} compact />
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="flex-1 flex items-center justify-center p-6 bg-gray-900/50 rounded-xl border border-gray-800 text-center">
-                                        <span className="text-gray-600 text-sm">No triads available for this configuration.</span>
-                                    </div>
-                                )}
+                                 </div>
                             </div>
                         )}
                     </section>
                 </div>
-                
-                {/* Related Minor 6th Diminished Scales (Moved Up) */}
-                <section className="flex flex-col mt-2 pt-4 border-t border-gray-800">
+
+                {/* Full Width: Related Minor 6ths */}
+                <section>
                     <SectionHeader 
-                        title="Related Minor 6th Diminished Scales (Raise Note)" 
-                        colorClass="bg-emerald-500" 
+                        title="Related Minor 6ths"
+                        subtitle="diatonic to minor 6 diminished scale" 
+                        colorClass="bg-rose-500" 
                         isExpanded={expandedSections.minor6}
                         isSolo={activeSoloKey === 'minor6'}
                         onToggle={() => toggleSection('minor6')}
                         onSolo={() => soloSection('minor6')}
                     />
-
                     {expandedSections.minor6 && (
-                        <div className="animate-in slide-in-from-top-4 duration-300">
-                            {result.relatedMinor6ths.length === 0 ? (
-                                <div className="flex items-center justify-center p-6 bg-gray-900/50 rounded-xl border border-gray-800 text-center">
-                                    <div className="text-gray-500 text-xs">No related minor 6th matches found</div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {result.relatedMinor6ths.map((m6Item, idx) => {
-                                        const cardId = `m6-${m6Item.chord.symbol}`;
-                                        const isHidden = hiddenSubIds.has(cardId);
-                                        const isSoloed = checkSubSolo(cardId, minor6Ids);
-
-                                        return (
-                                        <div key={idx} className={`bg-gray-800/40 border border-gray-700/30 rounded-lg p-4 hover:bg-gray-800/60 transition-colors flex flex-col gap-4 h-full ${isHidden ? 'opacity-60' : ''}`}>
-                                            
-                                            <SubSectionHeader 
-                                                title={`${m6Item.chord.symbol} Dim Scale`}
-                                                titleColor="text-emerald-300"
+                        <div className="animate-in fade-in duration-300">
+                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                                {result.relatedMinor6ths.map((item) => {
+                                    const cardId = `m6-${item.chord.symbol}`;
+                                    const isHidden = hiddenSubIds.has(cardId);
+                                    const isSoloed = checkSubSolo(cardId, minor6Ids);
+                                    
+                                    return (
+                                    <div key={item.chord.symbol} className={`bg-gray-900/80 rounded-xl border border-gray-800/80 overflow-hidden transition-all duration-300 ${isHidden ? 'opacity-50 grayscale' : ''} ${isSoloed ? 'ring-1 ring-indigo-500/50 bg-gray-800/80' : ''}`}>
+                                        <div className="px-3 py-2 bg-gray-900 border-b border-gray-800/50">
+                                             <SubSectionHeader 
+                                                title={item.chord.symbol}
+                                                titleColor="text-rose-200"
                                                 isCollapsed={isHidden}
                                                 isSolo={isSoloed}
                                                 onToggle={() => toggleSubItem(cardId)}
                                                 onSolo={() => handleSubSolo(cardId, minor6Ids)}
-                                            />
-
-                                            {!isHidden && (
-                                                <div className="animate-in fade-in duration-200 flex flex-col gap-4 h-full">
-                                                    {/* Parent Chord */}
-                                                    <ChordChip data={m6Item.chord} showBadges={showMelodyBadges} />
-                                                    
-                                                    {/* Scale Tones Visualization */}
-                                                    <div>
-                                                        <div className="text-[9px] font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Scale Tones</div>
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {m6Item.scale.map((note, nIdx) => (
-                                                                <div key={nIdx} className={`
-                                                                    flex items-center justify-center w-7 h-7 rounded text-[10px] font-bold border
-                                                                    ${note.isMelody 
-                                                                        ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-200 ring-1 ring-yellow-500/50 shadow-[0_0_8px_rgba(234,179,8,0.2)]' 
-                                                                        : note.role === 'Chord Tone'
-                                                                            ? 'bg-emerald-900/20 border-emerald-500/20 text-emerald-300'
-                                                                            : 'bg-gray-800 border-gray-700 text-gray-500'
-                                                                    }
-                                                                `}>
-                                                                    {note.note}
-                                                                </div>
+                                             />
+                                             {!isHidden && (
+                                                 <div className="flex flex-wrap gap-1 mt-1">
+                                                    {item.scale.map((n, i) => (
+                                                        <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded ${n.role === 'Chord Tone' ? 'bg-rose-900/20 text-rose-300/80' : 'text-gray-600'}`}>
+                                                            {n.note}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                             )}
+                                        </div>
+                                        
+                                        {!isHidden && (
+                                            <div className="p-3 space-y-3">
+                                                <ChordChip data={item.chord} showBadges={showMelodyBadges} />
+                                                
+                                                {item.derivedChords.length > 0 && (
+                                                    <div className="space-y-1.5">
+                                                        <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Derived Chords</p>
+                                                        <div className="flex flex-col gap-2">
+                                                            {item.derivedChords.map(derived => (
+                                                                <ChordChip key={derived.symbol} data={derived} showBadges={showMelodyBadges} compact />
                                                             ))}
                                                         </div>
                                                     </div>
-
-                                                    {/* Derived Chords */}
-                                                    <div className="flex-1 flex flex-col border-t border-gray-700/50 pt-3">
-                                                        <div className="text-[9px] font-bold text-gray-500 uppercase mb-2 tracking-wider flex items-center justify-between">
-                                                            Derived Chords
-                                                            <span className="text-[8px] bg-gray-800 px-1.5 py-0.5 rounded text-gray-400">{m6Item.derivedChords.length} Found</span>
-                                                        </div>
-                                                        {m6Item.derivedChords.length > 0 ? (
-                                                            <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                                                                {m6Item.derivedChords.map((dc, dcIdx) => (
-                                                                    <div key={dcIdx} className="flex-grow">
-                                                                        <ChordChip 
-                                                                        data={dc} 
-                                                                        showBadges={showMelodyBadges} 
-                                                                        compact={true}
-                                                                        />
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="text-gray-600 text-xs italic">None found with current melody.</div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )})}
-                                </div>
-                            )}
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )})}
+                             </div>
                         </div>
                     )}
                 </section>
 
-                {/* New Section: Major 6th Families (Raise 2 Notes) */}
-                <section className="flex flex-col mt-2 pt-4 border-t border-gray-800">
-                    <SectionHeader 
-                        title="Parallel Major Family (Direct Resolution)" 
-                        colorClass="bg-amber-500" 
-                        isExpanded={expandedSections.major6Raise}
-                        isSolo={activeSoloKey === 'major6Raise'}
-                        onToggle={() => toggleSection('major6Raise')}
-                        onSolo={() => soloSection('major6Raise')}
-                    />
+                {/* Split Layout: Major 6th Families */}
+                <div className={`grid grid-cols-1 gap-4 ${expandedSections.major6Raise && expandedSections.major6Lower ? 'lg:grid-cols-2' : ''}`}>
                     
-                     {expandedSections.major6Raise && (
-                        <div className="animate-in slide-in-from-top-4 duration-300">
-                             {result.major6Raise2.length === 0 ? (
-                                <div className="flex items-center justify-center p-6 bg-gray-900/50 rounded-xl border border-gray-800 text-center">
-                                    <div className="text-gray-500 text-xs">No major 6th matches found</div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {result.major6Raise2.map(fam => {
+                    {/* Raise 2 (Major 6) */}
+                    <section className="flex flex-col gap-4 h-full">
+                        <SectionHeader 
+                            title="Brotherhood (Major 6) - Raise 2 Notes"
+                            subtitle="diatonic to major 6 diminished scale" 
+                            colorClass="bg-amber-500" 
+                            isExpanded={expandedSections.major6Raise}
+                            isSolo={activeSoloKey === 'major6Raise'}
+                            onToggle={() => toggleSection('major6Raise')}
+                            onSolo={() => soloSection('major6Raise')}
+                        />
+                        {expandedSections.major6Raise && (
+                            <div className="animate-in fade-in duration-300">
+                                 <div className={`grid grid-cols-1 gap-4 ${!expandedSections.major6Lower ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'}`}>
+                                     {result.major6Raise2.map(fam => {
                                          const cardId = `m6r-${fam.root}`;
                                          const isHidden = hiddenSubIds.has(cardId);
                                          const isSoloed = checkSubSolo(cardId, major6RaiseIds);
+
                                          return (
-                                             <div key={fam.root} className={`bg-gray-800/40 border border-gray-700/30 rounded-lg p-4 hover:bg-gray-800/60 transition-colors flex flex-col gap-4 h-full ${isHidden ? 'opacity-60' : ''}`}>
-                                                  <SubSectionHeader 
-                                                        title={`${fam.root} Major 6`}
-                                                        titleColor="text-amber-300"
+                                            <div key={fam.root} className={`bg-gray-900/80 rounded-xl border border-gray-800/80 overflow-hidden transition-all duration-300 ${isHidden ? 'opacity-50 grayscale' : ''} ${isSoloed ? 'ring-1 ring-indigo-500/50 bg-gray-800/80' : ''}`}>
+                                                <div className="px-3 py-2 bg-gray-900 border-b border-gray-800/50">
+                                                    <SubSectionHeader 
+                                                        title={`${fam.root}6 Family`}
+                                                        titleColor="text-amber-200"
                                                         isCollapsed={isHidden}
                                                         isSolo={isSoloed}
                                                         onToggle={() => toggleSubItem(cardId)}
                                                         onSolo={() => handleSubSolo(cardId, major6RaiseIds)}
                                                     />
-                                                  {!isHidden && (
-                                                      <div className="animate-in fade-in duration-200 flex flex-wrap gap-2">
-                                                          {fam.chords.map(c => (
-                                                              <div key={c.symbol} className="flex-grow">
-                                                                  <ChordChip data={c} showBadges={showMelodyBadges} />
-                                                              </div>
-                                                          ))}
-                                                      </div>
-                                                  )}
-                                             </div>
-                                         );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                     )}
-                </section>
-                
-                 {/* New Section: Major 6th Families (Lower 2 Notes) */}
-                <section className="flex flex-col mt-2 pt-4 border-t border-gray-800">
-                    <SectionHeader 
-                        title="Tone-Above Family (Indirect / Substitution)" 
-                        colorClass="bg-pink-500" 
-                        isExpanded={expandedSections.major6Lower}
-                        isSolo={activeSoloKey === 'major6Lower'}
-                        onToggle={() => toggleSection('major6Lower')}
-                        onSolo={() => soloSection('major6Lower')}
-                    />
-                    
-                     {expandedSections.major6Lower && (
-                        <div className="animate-in slide-in-from-top-4 duration-300">
-                             {result.major6Lower2.length === 0 ? (
-                                <div className="flex items-center justify-center p-6 bg-gray-900/50 rounded-xl border border-gray-800 text-center">
-                                    <div className="text-gray-500 text-xs">No major 6th matches found</div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {result.major6Lower2.map(fam => {
+                                                </div>
+                                                {!isHidden && (
+                                                    <div className="p-3 space-y-2">
+                                                        {fam.chords.map(c => (
+                                                            <ChordChip key={c.symbol} data={c} showBadges={showMelodyBadges} compact />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                     )})}
+                                 </div>
+                            </div>
+                        )}
+                    </section>
+
+                     {/* Lower 2 (Major 6) */}
+                     <section className="flex flex-col gap-4 h-full">
+                        <SectionHeader 
+                            title="Brotherhood (Major 6) - Lower 2 Notes" 
+                            subtitle="diatonic to major 6 diminished scale"
+                            colorClass="bg-emerald-500" 
+                            isExpanded={expandedSections.major6Lower}
+                            isSolo={activeSoloKey === 'major6Lower'}
+                            onToggle={() => toggleSection('major6Lower')}
+                            onSolo={() => soloSection('major6Lower')}
+                        />
+                        {expandedSections.major6Lower && (
+                            <div className="animate-in fade-in duration-300">
+                                 <div className={`grid grid-cols-1 gap-4 ${!expandedSections.major6Raise ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'}`}>
+                                     {result.major6Lower2.map(fam => {
                                          const cardId = `m6l-${fam.root}`;
                                          const isHidden = hiddenSubIds.has(cardId);
                                          const isSoloed = checkSubSolo(cardId, major6LowerIds);
+
                                          return (
-                                             <div key={fam.root} className={`bg-gray-800/40 border border-gray-700/30 rounded-lg p-4 hover:bg-gray-800/60 transition-colors flex flex-col gap-4 h-full ${isHidden ? 'opacity-60' : ''}`}>
-                                                  <SubSectionHeader 
-                                                        title={`${fam.root} Major 6`}
-                                                        titleColor="text-pink-300"
+                                            <div key={fam.root} className={`bg-gray-900/80 rounded-xl border border-gray-800/80 overflow-hidden transition-all duration-300 ${isHidden ? 'opacity-50 grayscale' : ''} ${isSoloed ? 'ring-1 ring-indigo-500/50 bg-gray-800/80' : ''}`}>
+                                                <div className="px-3 py-2 bg-gray-900 border-b border-gray-800/50">
+                                                    <SubSectionHeader 
+                                                        title={`${fam.root}6 Family`}
+                                                        titleColor="text-emerald-200"
                                                         isCollapsed={isHidden}
                                                         isSolo={isSoloed}
                                                         onToggle={() => toggleSubItem(cardId)}
                                                         onSolo={() => handleSubSolo(cardId, major6LowerIds)}
                                                     />
-                                                  {!isHidden && (
-                                                      <div className="animate-in fade-in duration-200 flex flex-wrap gap-2">
-                                                          {fam.chords.map(c => (
-                                                              <div key={c.symbol} className="flex-grow">
-                                                                  <ChordChip data={c} showBadges={showMelodyBadges} />
-                                                              </div>
-                                                          ))}
-                                                      </div>
-                                                  )}
-                                             </div>
-                                         );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-                     )}
-                </section>
+                                                </div>
+                                                {!isHidden && (
+                                                    <div className="p-3 space-y-2">
+                                                        {fam.chords.map(c => (
+                                                            <ChordChip key={c.symbol} data={c} showBadges={showMelodyBadges} compact />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                     )})}
+                                 </div>
+                            </div>
+                        )}
+                    </section>
+                </div>
 
               </>
             )}
         </div>
-        
-        <footer className="text-center text-gray-700 text-[10px] pt-6 pb-4">
-          <p>© 2024 Chord Sub App for Harmony Nerds (v 1.05). Based on the Diminished 6th System.</p>
-        </footer>
 
+        {/* Footer */}
+        <footer className="pt-8 pb-4 text-center text-gray-600 text-xs">
+            <p>© {new Date().getFullYear()} Chord Sub App for Harmony Nerds (v 1.09). Built for Barry Harris methodology.</p>
+        </footer>
       </div>
     </div>
   );
